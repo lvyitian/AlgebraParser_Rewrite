@@ -27,7 +27,7 @@ public class Functions {
       functions.put("fac",Fac.INSTANCE);
       functions.put("max",Max.INSTANCE);
       functions.put("min",Min.INSTANCE);
-      functions.put("mod",Mod.INSTANCE);
+      //functions.put("mod",Mod.INSTANCE);
       functions.put("pow",Pow.INSTANCE);
       functions.put("sec",Sec.INSTANCE);
       functions.put("sin",Sin.INSTANCE);

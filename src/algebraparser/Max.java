@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Max implements Function {
     public static final Max INSTANCE=new Max();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return Math.max(args[0].apply(), args[1].apply());
@@ -27,5 +28,14 @@ public class Max implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }

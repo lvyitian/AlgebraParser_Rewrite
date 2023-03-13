@@ -18,12 +18,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author 53548
  */
 public class Lexer {
+
     public static Expr lex(String code) {
         List<Node> nodes = new CopyOnWriteArrayList<>();
-        ConcurrentMap<Integer,Operator> ops=new ConcurrentHashMap<>();
-        ConcurrentMap<Integer,Integer> codeToNodes=new ConcurrentHashMap<>();
+        ConcurrentMap<Integer, Operator> ops = new ConcurrentHashMap<>();
+        ConcurrentMap<Integer, Integer> codeToNodes = new ConcurrentHashMap<>();
         Parser parser = new Parser(code);
         parser.skipSpaces();
+        Function lastFunc=null;
         int cur = parser.currentChar();
         String words = "";
         while (cur != -1) {
@@ -49,14 +51,17 @@ public class Lexer {
                     nodes.add(lex(parser.getCode().substring(position + 1, parser.getPosition())));
                     continue;
                 }
-                if(!words.trim().isEmpty()&&cur=='(')
-                {
-                    try{
-                    Function func=Functions.functions.get(words.toLowerCase(Locale.ENGLISH));
-                    if(func==null)
-                        throw new RuntimeException("No such function: "+words);
-                    nodes.add(func);
-                    }finally{words="";}
+                if (!words.trim().isEmpty() && cur == '(') {
+                    try {
+                        Function func = Functions.functions.get(words.toLowerCase(Locale.ENGLISH));
+                        if (func == null) {
+                            throw new RuntimeException("No such function: " + words);
+                        }
+                        lastFunc=func;
+                        nodes.add(func);
+                    } finally {
+                        words = "";
+                    }
                     continue;
                 }
                 if (cur == ')') {
@@ -68,94 +73,131 @@ public class Lexer {
                     nodes.add(Separator.INSTANCE);
                     continue;
                 }
-                if(cur=='_')
+                if (cur == '_') {
                     continue;
-                int pos=parser.getPosition();
-                try{
+                }
+                int pos = parser.getPosition();
+                try {
                     nodes.add(Number.of(parser.readDouble()));
-                    if(parser.hasNext())
-                      parser.setPosition(parser.getPosition()-1);
+                    if (parser.hasNext()) {
+                        parser.setPosition(parser.getPosition() - 1);
+                    }
                     //System.out.println("AddedNumber: "+nodes.get(nodes.size()-1));
                     //System.out.println("AfterReadPosition: "+parser.getPosition());
                     continue;
-                }catch(Parser.ParseException exc){parser.setPosition(pos);}
-                
-                Operator op=Operators.operators.get((char)cur);
-                //System.out.println("currentChar: "+(char)cur);
-                if(op!=null)
-                {
-                    //System.out.println("currentOperatorChar: "+cur);
-                    //System.out.println("currentOperatorChar_nodes: "+nodes);
-                    ops.put(parser.getPosition(),op);
-                    codeToNodes.put(parser.getPosition(),nodes.size()-1);
-                    continue;
+                } catch (Parser.ParseException exc) {
+                    parser.setPosition(pos);
                 }
-                if (Character.isAlphabetic(cur)) {
+
+                if (Character.isAlphabetic(cur) && !Operators.operators.containsKey((char) cur)) {
                     words += Character.toLowerCase((char) cur);
                     continue;
-                }else{
-                    if(Character.isDigit(cur))
+                } else {
+                    if (Character.isDigit(cur)) {
                         continue;
-                    if(Character.isWhitespace(cur))
+                    }
+                    if (Character.isWhitespace(cur)) {
                         continue;
-                    try{
-                    Constant constant=Constants.constants.get(words);
-                    if(constant==null)
-                        throw new RuntimeException("No such constant: "+words);
-                    nodes.add(constant);
-                    }finally{words="";}
+                    }
+                    try {
+                        Constant constant = Constants.constants.get(words);
+                        //System.out.println("test: "+(char)cur);
+                        if (constant == null) {
+                            if (Operators.operators.containsKey((char) cur)) {
+                                continue;
+                            }
+                            throw new RuntimeException("No such constant: " + words);
+                        }
+                        nodes.add(constant);
+                        //continue;
+                    } finally {
+                        words = "";
+                    }
                 }
-                throw new RuntimeException("SyntaxError");
+                Operator op = Operators.operators.get((char) cur);
+                //System.out.println("currentChar: "+(char)cur);
+                if (op != null) {
+                    //System.out.println("currentOperatorChar: "+cur);
+                    //System.out.println("currentOperatorChar_nodes: "+nodes);
+                    if(lastFunc!=null)
+                    {
+                        lastFunc.setHasOperatorBehind(true);
+                        lastFunc=null;
+                    }
+                    ops.put(parser.getPosition(), op);
+                    codeToNodes.put(parser.getPosition(), nodes.size() - 1);
+                    continue;
+                }
+                //throw new RuntimeException("SyntaxError");
             } finally {
                 cur = parser.nextChar();
             }
         }
-        for(int i=0;i<nodes.size();i++)
-        {
-            if(nodes.get(i) instanceof Function)
-            {
-                List<Node> newNodes=new ArrayList<>();
-                Function func=(Function)nodes.get(i);
+        if (!words.isEmpty()) {
+            Constant constant = Constants.constants.get(words);
+            if (constant == null) {
+                throw new RuntimeException("No such constant: " + words);
+            }
+            nodes.add(constant);
+            words = "";
+        }
+        for (int i = 0; i < nodes.size(); i++) {
+            if (nodes.get(i) instanceof Function) {
+                List<Node> newNodes = new ArrayList<>();
+                Expr newExpr=Expr.of(newNodes);
+                Function func = (Function) nodes.get(i);
                 newNodes.add(func);
-                int[] sc={0};
-                func.readArgs(nodes.subList(i+1, nodes.size()), sc);
+                int[] sc = {0};
+                func.readArgs(nodes.subList(i + 1, nodes.size()), sc);
                 nodes.remove(i);
-                int off=0;
-                for(int tmp=0;tmp-off<sc[0];tmp++)
-                {
-                    if(nodes.get(i+tmp) instanceof Separator)
-                    {
+                int off = 0;
+                for (int tmp = 0; tmp - off < sc[0]; tmp++) {
+                    if (nodes.get(i + tmp) instanceof Separator) {
                         off++;
                     }
-                    newNodes.add(nodes.get(i+tmp));
-                    nodes.remove(i+tmp);
-                    nodes.add(i+tmp,NullNode.INSTANCE);
+                    if(nodes.get(i+tmp) instanceof Function && func.hasOperatorBehind())
+                    {
+                        break;
+                    }
+                    newNodes.add(nodes.get(i + tmp));
+                    nodes.remove(i + tmp);
+                    nodes.add(i + tmp, new ExprNullNode(newExpr));
                 }
-                nodes.add(i,Expr.of(newNodes));
-                i+=sc[0];
+                nodes.add(i, newExpr);
+                i += sc[0];
             }
         }
-        ops.entrySet().stream().sorted((a,b)->(int)(a.getValue().priority()-b.getValue().priority())).forEach(i->{
-            int nodeIndex=codeToNodes.get(i.getKey());
-            Operator op=i.getValue();
+        ops.entrySet().stream().sorted((a, b) -> (int) (a.getValue().priority() - b.getValue().priority())).forEach(i -> {
+            int nodeIndex = codeToNodes.get(i.getKey());
+            Operator op = i.getValue();
             //System.out.println("nodes: "+nodes);
-            Node oprand1=nodes.get(nodeIndex);
-            Node oprand2=null;
+            Node oprand1 = nodes.get(nodeIndex);
+            Node oprand2 = null;
             nodes.remove(nodeIndex);
-            nodes.add(nodeIndex,NullNode.INSTANCE);
-            if(op.getArgsLength()>1){
-              oprand2=nodes.get(nodeIndex+1);
-              nodes.remove(nodeIndex+1);
-              nodes.add(nodeIndex+1,NullNode.INSTANCE);
+            nodes.add(nodeIndex, NullNode.INSTANCE);
+            if (op.getArgsLength() > 1) {
+                oprand2 = nodes.get(nodeIndex + 1);
+                nodes.remove(nodeIndex + 1);
+                nodes.add(nodeIndex + 1, NullNode.INSTANCE);
             }
-            if(op.getArgsLength()>1)
-                nodes.add(nodeIndex,Expr.of(Arrays.asList(new Node[]{oprand1,op,oprand2})));
-            else nodes.add(nodeIndex,Expr.of(Arrays.asList(new Node[]{oprand1,op})));
+            if(oprand1 instanceof ExprNullNode)
+            {
+                oprand1=((ExprNullNode)oprand1).expr;
+            }
+            if(oprand2 instanceof ExprNullNode)
+            {
+                oprand2=((ExprNullNode)oprand2).expr;
+            }
+            if (op.getArgsLength() > 1) {
+                nodes.add(nodeIndex, Expr.of(Arrays.asList(new Node[]{oprand1, op, oprand2})));
+            } else {
+                nodes.add(nodeIndex, Expr.of(Arrays.asList(new Node[]{oprand1, op})));
+            }
         });
-        for(int i=0;i+1<nodes.size();i+=2)
-        {
-            if(nodes.get(i) instanceof Number && nodes.get(i+1) instanceof Number)
-                nodes.add(i+1, Add.INSTANCE);
+        for (int i = 0; i + 1 < nodes.size(); i += 2) {
+            if (nodes.get(i) instanceof Number && nodes.get(i + 1) instanceof Number) {
+                nodes.add(i + 1, Add.INSTANCE);
+            }
         }
         return Expr.of(nodes);
     }

@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Asec implements Function {
     public static final Asec INSTANCE=new Asec();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return Math.acos(1/args[0].apply());
@@ -27,6 +28,15 @@ public class Asec implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }
 

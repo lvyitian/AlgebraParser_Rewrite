@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Acos implements Function {
     public static final Acos INSTANCE=new Acos();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return Math.acos(args[0].apply());
@@ -28,6 +29,16 @@ public class Acos implements Function {
     public String toString()
     {
         return asString();
+    }
+
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
     
 }

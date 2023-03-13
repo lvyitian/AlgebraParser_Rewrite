@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Clamp implements Function {
     public static final Clamp INSTANCE=new Clamp();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return clamp(args[0].apply(),args[1].apply(),args[2].apply());
@@ -35,6 +36,15 @@ public class Clamp implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }
 

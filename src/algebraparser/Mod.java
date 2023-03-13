@@ -8,7 +8,7 @@ package algebraparser;
  *
  * @author 53548
  */
-public class Mod implements Operator,Function {
+public class Mod implements Operator/*,Function*/ {
     public static final Mod INSTANCE=new Mod();
     @Override
     public double apply(Node... args) {

@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Cot implements Function {
     public static final Cot INSTANCE=new Cot();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return 1/Math.tan(args[0].apply());
@@ -27,5 +28,14 @@ public class Cot implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }

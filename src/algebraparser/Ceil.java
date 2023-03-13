@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Ceil implements Function {
     public static final Ceil INSTANCE=new Ceil();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return Math.ceil(args[0].apply());
@@ -26,6 +27,15 @@ public class Ceil implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }
 

@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class ToInt implements Function {
     public static final ToInt INSTANCE=new ToInt();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return (long)args[0].apply();
@@ -26,5 +27,14 @@ public class ToInt implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }

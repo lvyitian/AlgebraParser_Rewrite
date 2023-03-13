@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Min implements Function {
     public static final Min INSTANCE=new Min();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return Math.min(args[0].apply(), args[1].apply());
@@ -27,5 +28,14 @@ public class Min implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }

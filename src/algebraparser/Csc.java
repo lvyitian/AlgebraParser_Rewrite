@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Csc implements Function {
     public static final Csc INSTANCE=new Csc();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return 1/Math.sin(args[0].apply());
@@ -27,5 +28,14 @@ public class Csc implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }

@@ -12,7 +12,18 @@ import java.util.List;
  * @author 53548
  */
 public interface Function extends Node {
-    public static final Function EMPTY_TWO_OPERAND_OPERATOR=new Function(){@Override public int getArgsLength(){return 2;}@Override public double apply(Node... args){return Double.NaN;} @Override
+    public static final Function EMPTY_TWO_OPERAND_OPERATOR=new Function(){@Override public int getArgsLength(){return 2;}@Override public double apply(Node... args){return Double.NaN;} 
+    @Override
+    public boolean hasOperatorBehind()
+    {
+        throw new UnsupportedOperationException();
+    }
+    @Override
+    public void setHasOperatorBehind(boolean b)
+    {
+        throw new UnsupportedOperationException();
+    }
+    @Override
     public String asString() {
         return "EMPTY_TWO_OPERAND_OPERATOR";
     }
@@ -21,7 +32,18 @@ public interface Function extends Node {
     {
         return asString();
     }};
-    public static final Function EMPTY_SINGLE_OPERAND_OPERATOR=new Function(){@Override public int getArgsLength(){return 2;}@Override public double apply(Node... args){return Double.NaN;} @Override
+    public static final Function EMPTY_SINGLE_OPERAND_OPERATOR=new Function(){@Override public int getArgsLength(){return 2;}@Override public double apply(Node... args){return Double.NaN;} 
+    @Override
+    public boolean hasOperatorBehind()
+    {
+        throw new UnsupportedOperationException();
+    }
+    @Override
+    public void setHasOperatorBehind(boolean b)
+    {
+        throw new UnsupportedOperationException();
+    }
+    @Override
     public String asString() {
         return "EMPTY_SINGLE_OPERAND_OPERATOR";
     }
@@ -30,7 +52,8 @@ public interface Function extends Node {
     {
         return asString();
     }};
-    
+    boolean hasOperatorBehind();
+    void setHasOperatorBehind(boolean b);
     default Node[] readArgs(List<Node> ori, int[] skipCount) {
         List<Node> res = new ArrayList<>();
         for (int t = 0; t < getArgsLength(); t++) {

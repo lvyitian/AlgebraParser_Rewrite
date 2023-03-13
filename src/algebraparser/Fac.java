@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Fac implements Function {
     public static final Fac INSTANCE=new Fac();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return factorial((long)args[0].apply());
@@ -32,5 +33,14 @@ public class Fac implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }

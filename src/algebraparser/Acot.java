@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Acot implements Function {
     public static final Acot INSTANCE=new Acot();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return Math.atan(1/args[0].apply());
@@ -27,5 +28,14 @@ public class Acot implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }

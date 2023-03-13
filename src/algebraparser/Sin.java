@@ -10,6 +10,7 @@ package algebraparser;
  */
 public class Sin implements Function {
     public static final Sin INSTANCE=new Sin();
+    public volatile boolean hasOp;
     @Override
     public double apply(Node... args) {
         return Math.sin(args[0].apply());
@@ -27,5 +28,14 @@ public class Sin implements Function {
     public String toString()
     {
         return asString();
+    }
+    @Override
+    public boolean hasOperatorBehind() {
+        return hasOp;
+    }
+
+    @Override
+    public void setHasOperatorBehind(boolean b) {
+        hasOp=b;
     }
 }
